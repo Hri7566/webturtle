@@ -65,6 +65,11 @@ local function handleMessage(data)
                 turtle.dig()
             end
         end
+
+        if msg.m == "setname" then
+            local name = msg.name
+            os.setComputerLabel(name)
+        end
     end
 end
 
