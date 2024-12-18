@@ -4,24 +4,42 @@
 
 import type { ServerWebSocketTurtle } from ".";
 import { EventEmitter } from "events";
+import { Turtle } from "./turtle";
+import { Web } from "./web";
+
+export enum SocketType {
+    OTHER = "other",
+    TURTLE = "turtle",
+    BROWSER = "browser",
+}
 
 export class Socket extends EventEmitter {
     private _id: string;
     private uuid: string;
     private ip: string;
+    private type: SocketType = SocketType.OTHER;
+
+    public turtle: Turtle;
+    public web: Web;
 
     constructor(public ws: ServerWebSocketTurtle) {
         super();
         this._id = "";
         this.uuid = crypto.randomUUID();
         this.ip = ws.data.ip;
+        this.turtle = new Turtle(this);
+        this.web = new Web(this);
 
         this.on("iamaturtle", (msg) => {
             console.log("Received iamaturtle message:", msg);
+            this.type = SocketType.TURTLE;
+            this.turtle.bindEventListeners();
         });
 
         this.on("iamabrowser", (msg) => {
             console.log("Received iamabrowser message:", msg);
+            this.type = SocketType.BROWSER;
+            this.web.bindEventListeners();
         });
     }
 
@@ -35,6 +53,10 @@ export class Socket extends EventEmitter {
 
     public getIP() {
         return this.ip;
+    }
+
+    public getType() {
+        return this.type;
     }
 
     public destroyed = false;
@@ -90,4 +112,12 @@ export function findSocketByIP(ip: string) {
             return socket;
         }
     }
+}
+
+export function getTurtleSockets() {
+    return [
+        ...socketsByUUID
+            .values()
+            .filter((s) => s.getType() === SocketType.TURTLE),
+    ];
 }

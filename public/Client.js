@@ -59,6 +59,7 @@ export class Client extends EventEmitter {
 
         this.ws.addEventListener("open", () => {
             console.log("Connected to server");
+            this.send([{ m: "iamabrowser" }]);
         });
 
         this.ws.addEventListener("close", () => {

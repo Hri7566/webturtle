@@ -3,7 +3,7 @@
  */
 
 import type { ServerWebSocket } from "bun";
-import { Socket, socketsByUUID } from "./Socket";
+import { getTurtleSockets, Socket, socketsByUUID } from "./Socket";
 import path from "path/posix";
 import fs from "fs";
 
@@ -22,6 +22,37 @@ function handleMessage(socket: Socket, data: string) {
     } catch (err) {}
 }
 
+async function asyncMap(
+    array: unknown[],
+    callback: (...args: unknown[]) => Promise<unknown[]>
+) {
+    const promises = array.map(callback); // Map each element to a promise
+    return Promise.all(promises); // Wait for all promises to resolve
+}
+
+async function middleware(path: string): Promise<Response | void> {
+    switch (path) {
+        case "/list":
+            const turtleSockets = getTurtleSockets();
+            const turtleData = [];
+
+            for (const socket of turtleSockets) {
+                turtleData.push({
+                    name: await socket.turtle.getName(),
+                    id: socket.getUUID(),
+                });
+            }
+
+            console.log(turtleData);
+
+            return new Response(
+                `<select name="turtle-list" id="turtle-list">${turtleData
+                    .map((n) => `<option value="${n.id}">${n.name}</option>`)
+                    .join("")}</select>`
+            );
+    }
+}
+
 export const startServer = () => {
     return Bun.serve({
         async fetch(req, server) {
@@ -35,16 +66,24 @@ export const startServer = () => {
             }
 
             const url = new URL(req.url).pathname;
-            const file = path.join("./public/", url);
+            let file = path.join("./public/", url);
 
-            if (fs.lstatSync(file).isFile()) {
-                const data = Bun.file(file);
+            if (file === "public/") file = "public/index.html";
 
-                if (data) {
-                    return new Response(data);
+            let override = await middleware(url);
+
+            if (!override) {
+                if (fs.lstatSync(file).isFile()) {
+                    const data = Bun.file(file);
+
+                    if (data) {
+                        return new Response(data);
+                    }
+
+                    return new Response("broken");
                 }
-
-                return new Response("broken");
+            } else {
+                return override;
             }
 
             return new Response("broken");
@@ -54,6 +93,7 @@ export const startServer = () => {
             async open(ws: ServerWebSocketTurtle) {
                 ws.data.socket = new Socket(ws);
                 ws.data.socket.send([{ m: "hi" }]);
+                socketsByUUID.set(ws.data.socket.getUUID(), ws.data.socket);
             },
 
             async message(ws: ServerWebSocketTurtle, message) {

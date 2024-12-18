@@ -262,3 +262,102 @@ function animate() {
 
     renderer.render(scene, camera);
 }
+
+function getTurtleID() {
+    return document.getElementById("turtle-list").value;
+}
+
+/**
+ * Button controls
+ */
+
+document.getElementById("forward-button").addEventListener("click", (evt) => {
+    console.log("sending forward");
+    client.send([
+        {
+            m: "forward",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("back-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "back",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("left-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "left",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("right-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "right",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("up-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "up",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("down-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "down",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("refuel-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "refuel",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("dig-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "dig",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("dig-up-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "digup",
+            id: getTurtleID(),
+        },
+    ]);
+});
+
+document.getElementById("dig-down-button").addEventListener("click", (evt) => {
+    client.send([
+        {
+            m: "digdown",
+            id: getTurtleID(),
+        },
+    ]);
+});
